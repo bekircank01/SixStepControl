@@ -1,0 +1,166 @@
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*-----HALL SENSOR PARAMETERS------------------------------------------------*/
+int HallAFirstCapture_fl=0; //Hall A için 1-0 durumlarını gösteren flag
+int HallBFirstCapture_fl=0; //Hall B için 1-0 durumlarını gösteren flag
+int HallCFirstCapture_fl=0; //Hall C için 1-0 durumlarını gösteren flag
+
+float HallAFirstVal=0;
+float HallASecondVal=0;
+float HallADiff;
+float HallAFreq=0;
+float HallA_rpm=0;
+
+int Hall_Sector=6; //alignment için 10 yapıldı!!!
+int Hall_Sector_test=0;
+int H_Sec_old = 6;  //başlangıç için, hall interrupt handler'da kullanılacak
+int Hall_Sector_old = 0; //switch-case yapısında kullanılacak //başlangıç 0
+_Bool MotorDir_fl=0;
+_Bool MotorDir=0;  //0:CCW 1:CW
+int SectorError_fl=0;
+float max_capture_value=0;
+float RotorAngle_deg=0;  //0-360 derece arası
+float RotorAngle_rad=0;  //0-6.28 arası (2pi))
+_Bool Align_fl=0;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void FTM_INPUT_CAPTURE_HANDLER(void)
+{
+	/******************(Hall)_A**************/
+    if ((FTM_GetStatusFlags(BOARD_FTM_BASEADDR) & kFTM_Chnl2Flag) == kFTM_Chnl2Flag)
+    {
+        /* Clear interrupt flag.*/
+        FTM_ClearStatusFlags(BOARD_FTM_BASEADDR, kFTM_Chnl2Flag);
+
+        if( HallAFirstCapture_fl == 0 ){
+
+        	HallAFirstCapture_fl = 1;
+        	//HallAFirstVal= BOARD_FTM_BASEADDR->CONTROLS[kFTM_Chnl_2].CnV;
+        	//if(!MotorDir_fl){
+        	//	MotorDir=1; //İlk yükselen kenar A fazında ise
+        	//	MotorDir_fl=1; //flag 1'e çekildi
+        	//}
+        }
+        else{
+        	HallAFirstCapture_fl=0;
+        	/*
+        	HallASecondVal = BOARD_FTM_BASEADDR->CONTROLS[kFTM_Chnl_2].CnV;
+
+        	if(HallASecondVal > HallAFirstVal){
+        		HallADiff = HallASecondVal - HallAFirstVal;
+        	}
+        	else{
+        		HallADiff = (0xFFFF - HallAFirstVal)+(HallASecondVal);
+        	}
+            // Hall'ın 1 periyodunda geçen süre için difference 2 ile çarpıldı!!!
+        	HallAFreq = (21000000) / (HallADiff * 2); //clock freq: 21.000.000 Hz       //elektriksel hız
+        	HallA_rpm = HallAFreq*60;                 //frequency to RPM transform     //elektriksel hız
+            */
+        }
+    }
+
+	/******************(Hall)_B**************/
+    else if ((FTM_GetStatusFlags(BOARD_FTM_BASEADDR) & kFTM_Chnl3Flag) == kFTM_Chnl3Flag)
+    {
+        // Clear interrupt flag.//
+        FTM_ClearStatusFlags(BOARD_FTM_BASEADDR, kFTM_Chnl3Flag);
+
+        if(HallBFirstCapture_fl == 0){
+        	HallBFirstCapture_fl = 1;
+        	//if(!MotorDir_fl){
+        	//	MotorDir=0; //İlk yükselen kenar B fazında ise
+        	//	MotorDir_fl=1; //flag 1'e çekildi
+        	//}
+        }
+        else{
+        	HallBFirstCapture_fl=0;
+        }
+    }
+
+	/******************(Hall_C)**************/
+    else if ((FTM_GetStatusFlags(BOARD_FTM_BASEADDR) & kFTM_Chnl0Flag) == kFTM_Chnl0Flag)
+    {
+        // Clear interrupt flag.//
+        FTM_ClearStatusFlags(BOARD_FTM_BASEADDR, kFTM_Chnl0Flag);
+
+        if(HallCFirstCapture_fl == 0){
+        	HallCFirstCapture_fl = 1;
+        }
+        else{
+        	HallCFirstCapture_fl=0;
+        }
+    }
+
+    else{
+     	//!!!!!
+     }
+
+
+    //SECTOR CALCULATION
+	if(     HallAFirstCapture_fl==1 && HallBFirstCapture_fl==0 && HallCFirstCapture_fl==0 ){// &&H_Sec_old==1
+		Hall_Sector=1;
+		H_Sec_old=1;
+	}
+	else if(HallAFirstCapture_fl==1 && HallBFirstCapture_fl==1 && HallCFirstCapture_fl==0 ){// &&H_Sec_old==2
+		Hall_Sector=2;
+		H_Sec_old=2;
+	}
+	else if(HallAFirstCapture_fl==0 && HallBFirstCapture_fl==1 && HallCFirstCapture_fl==0 ){// &&H_Sec_old==3
+		Hall_Sector=3;
+		H_Sec_old=3;
+	}
+	else if(HallAFirstCapture_fl==0 && HallBFirstCapture_fl==1 && HallCFirstCapture_fl==1 ){// &&H_Sec_old==4
+		Hall_Sector=4;
+		H_Sec_old=4;
+	}
+	else if(HallAFirstCapture_fl==0 && HallBFirstCapture_fl==0 && HallCFirstCapture_fl==1 ){// &&H_Sec_old==5
+		Hall_Sector=5;
+		H_Sec_old=5;
+	}
+	else if(HallAFirstCapture_fl==1 && HallBFirstCapture_fl==0 && HallCFirstCapture_fl==1 ){// &&H_Sec_old==6
+		Hall_Sector=6;
+		H_Sec_old=6;
+	}
+	else{
+		//hata bayrağı kaldır
+		SectorError_fl++;
+		Hall_Sector=7;
+	}
+     __DSB();
+ }
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+static void Hall_Config(){
+    ftm_config_t ftm_hall;  //?
+
+    FTM_GetDefaultConfig(&ftm_hall);  //?
+
+    /* Initialize FTM module */
+    FTM_Init(BOARD_FTM_BASEADDR, &ftm_hall); //?
+
+    /* Setup dual-edge capture on a FTM channel pair */
+    FTM_SetupInputCapture(BOARD_FTM_BASEADDR, kFTM_Chnl_0, kFTM_RiseAndFallEdge, 0); // (Hall_C)
+    FTM_SetupInputCapture(BOARD_FTM_BASEADDR, kFTM_Chnl_2, kFTM_RiseAndFallEdge, 0); // (Hall_A)
+    FTM_SetupInputCapture(BOARD_FTM_BASEADDR, kFTM_Chnl_3, kFTM_RiseAndFallEdge, 0); // (Hall_B)
+
+    /* Set the timer to be in free-running mode */
+    BOARD_FTM_BASEADDR->MOD = 0xFFFF;
+
+    /* Enable channel interrupt when the second edge is detected */
+    FTM_EnableInterrupts(BOARD_FTM_BASEADDR, kFTM_Chnl0InterruptEnable); //encoderA (Hall_C)
+    FTM_EnableInterrupts(BOARD_FTM_BASEADDR, kFTM_Chnl2InterruptEnable); //encoderB (Hall_A)
+    FTM_EnableInterrupts(BOARD_FTM_BASEADDR, kFTM_Chnl3InterruptEnable); //encoder index (Hall_B)
+
+    /* Enable at the NVIC */
+    EnableIRQ(BOARD_FTM_IRQ_NUM);
+
+    FTM_StartTimer(BOARD_FTM_BASEADDR, kFTM_SystemClock); //?
+
+}

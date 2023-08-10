@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:manifest xmlns:ns2="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd" format_version="3.6" api_version="2.0.0" configuration="0da6972b67f513a1e822759e6aae486a" id="SDK_2.x_MKV42F64xxx16" name="MKV42F64xxx16" brief="This is SDK version 2.8.0 manifest file. It describes the content of the MKV42F64xxx16 and additional settings for tools that support SDK version 2.8.0">
+    <defines>
+        <define name="CPU_$|package|" value=""/>
+        <define name="CPU_$|package|_$|core|" value=""/>
+    </defines>
+    <ksdk id="MCUXpresso280" name="MCUXpresso280" version="2.8.0" revision="366 2020-07-21"/>
+    <compilers>
+        <compiler type="gcc" id="compiler_gcc" name="gcc"/>
+    </compilers>
+    <toolchainSettings>
+        <toolchainSetting id="com.nxp.mcuxpresso" name="mcuxpresso" full_name="MCUXpresso IDE" version="11.2.0" toolchain="mcuxpresso" compiler="compiler_gcc">
+            <option id="gnu.cpp.compiler.option.optimization.flags" type="string" user_name="">
+                <value>-fno-common</value>
+            </option>
+            <option id="gnu.c.compiler.option.optimization.flags" type="string" user_name="">
+                <value>-fno-common</value>
+            </option>
+            <option id="gnu.cpp.link.option.nostdlibs" type="boolean" user_name="">
+                <value>true</value>
+            </option>
+            <option id="com.crt.advproject.link.cpp.flashconfigenable" type="boolean" user_name="">
+                <value>true</value>
+            </option>
+            <option id="com.crt.advproject.link.flashconfigenable" type="boolean" user_name="">
+                <value>true</value>
+            </option>
+            <option id="gnu.c.link.option.nostdlibs" type="boolean" user_name="">
+                <value>true</value>
+            </option>
+        </toolchainSetting>
+    </toolchainSettings>
+    <toolchains>
+        <toolchain type="mcuxpresso" vendor="NXP Semiconductors" vendor_url="http://www.nxp.com" id="mcuxpresso" name="MCUXpresso_IDE" full_name="MCUXpresso IDE" version="11.2.0" compiler="compiler_gcc">
+            <debug>
+                <debug_configuration probe="LinkServer" id="com.crt.advproject.config.exe.release" name="Release Configuration">
+                    <scripts>
+                        <script type="init" silent="false" emulators="${gdb.stub} -mi -info-emu">
+                            <script>
+set remotetimeout 60000
+##target_extended_remote##
+set mem inaccessible-by-default ${mem.access}
+mon ondisconnect ${ondisconnect}
+set arm force-mode thumb
+${load}</script>
+                        </script>
+                        <script type="run" silent="false" emulators="${gdb.stub} -mi -info-emu">
+                            <script>${run}</script>
+                        </script>
+                    </scripts>
+                    <params>
+                        <params value="false" id="vector.catch.release.mcuxpresso" name="vector.catch"/>
+                        <params value="Disable" id="internal.cache.release.mcuxpresso" name="internal.cache"/>
+                    </params>
+                </debug_configuration>
+                <debug_configuration probe="LinkServer" id="com.crt.advproject.config.exe.debug" name="Debug Configuration">
+                    <scripts>
+                        <script type="init" silent="false" emulators="${gdb.stub} -mi -info-emu">
+                            <script>
+set remotetimeout 60000
+##target_extended_remote##
+set mem inaccessible-by-default ${mem.access}
+mon ondisconnect ${ondisconnect}
+set arm force-mode thumb
+${load}</script>
+                        </script>
+                        <script type="run" silent="false" emulators="${gdb.stub} -mi -info-emu">
+                            <script>${run}</script>
+                        </script>
+                    </scripts>
+                    <params>
+                        <params value="false" id="vector.catch.debug.mcuxpresso" name="vector.catch"/>
+                        <params value="Disable" id="internal.cache.debug.mcuxpresso" name="internal.cache"/>
+                    </params>
+                </debug_configuration>
+                <debug_configuration probe="Segger" id="com.nxp.mcuxpresso.core.debug.support.segger.debug" name="Debug Configuration"/>
+                <debug_configuration probe="Segger" id="com.nxp.mcuxpresso.core.debug.support.segger.release" name="Release Configuration"/>
+            </debug>
+        </toolchain>
+    </toolchains>
+    <boards>
+        <board package="MKV46F256VLL16" id="hvpkv46f150m" name="HVP-KV46F150M" href="" version="1.0.0">
+            <description>Kinetis KV46 MCU high-voltage development platform</description>
+            <image path="MIR/marketing_data/1.0/boards/images" type="image">
+                <files mask="40-HVP-KV46F150M.gif"/>
+            </image>
+        </board>
+        <board package="MKV46F256VLL16" id="twrkv46f150m" name="TWR-KV46F150M" href="https://www.nxp.com/pip/TWR-KV46F150M" version="1.0.0">
+            <description>Kinetis KV4x Family Tower System Module</description>
+            <image path="MIR/marketing_data/1.0/boards/images" type="image">
+                <files mask="79-TWR-KV46F150M.gif"/>
+            </image>
+        </board>
+    </boards>
+    <devices>
+        <device family="KV4x" platform="Kinetis" id="MKV46F256xxx16" name="MKV46F16" full_name="MKV46F256xxx16" version="1.0.0">
+            <description>Kinetis KV4x-168 MHz, High Performance Motor / Power Conversion MCUs based on ARM Cortex-M4</description>
+            <metadataSet>
+                <metadata key="vendor" value="NXP"/>
+            </metadataSet>
+            <core fpu="true" type="cm4" id="core0_MKV46F256xxx16" name="core0"/>
+            <memory>
+                <memoryBlock addr="00000000" size="00040000" type="Flash" access="RO" id="PROGRAM_FLASH_MKV46F256xxx16" name="PROGRAM_FLASH"/>
+                <memoryBlock addr="20000000" size="00004000" type="RAM" access="RW" id="SRAM_UPPER_MKV46F256xxx16" name="SRAM_UPPER"/>
+                <memoryBlock addr="1FFFC000" size="00004000" type="RAM" access="RW" id="SRAM_LOWER_MKV46F256xxx16" name="SRAM_LOWER"/>
+            </memory>
+            <total_memory flash_size_kb="256" ram_size_kb="16"/>
+            <package id="MKV46F256VLH16" name="MKV46F256VLH16"/>
+            <package id="MKV46F256VLL16" name="MKV46F256VLL16"/>
+            <evaluation_boards>
+                <evaluation_board name="hvpkv46f150m"/>
+                <evaluation_board name="twrkv46f150m"/>
+            </evaluation_boards>
+            <debug_configurations>
+                <debug_configuration id_refs="com.crt.advproject.config.exe.debug com.crt.advproject.config.exe.release">
+                    <params>
+                        <params value="SWD*,JTAG" id="internal.wiretype.release.MKV46F256xxx16" name="internal.wiretype"/>
+                        <params value="true" id="internal.has_swo.release.MKV46F256xxx16" name="internal.has_swo"/>
+                        <params value="kinetisconnect.scp" id="internal.connect.script.debug.mcuxpresso.MKV46F256xxx16" name="internal.connect.script"/>
+                    </params>
+                    <drivers>
+                        <driver id_refs="PROGRAM_FLASH_MKV46F256xxx16">
+                            <driverBinary path="devices/MKV46F16" type="binary">
+<files mask="FTFA_4K.cfx"/>
+                            </driverBinary>
+                        </driver>
+                    </drivers>
+                </debug_configuration>
+            </debug_configurations>
+            <linkerSettings nature="c_nature">
+                <linker property="start_symbol" value="ResetISR"/>
+                <linker property="text_align" value="4"/>
+                <linker property="data_align" value="4"/>
+                <linker property="bss_align" value="4"/>
+                <linker property="flash_security_address" value="0x400"/>
+                <linker property="mtb_supported" value="false"/>
+            </linkerSettings>
+            <linkerSettings nature="cpp_nature">
+                <linker property="start_symbol" value="ResetISR"/>
+                <linker property="text_align" value="4"/>
+                <linker property="data_align" value="4"/>
+                <linker property="bss_align" value="4"/>
+                <linker property="flash_security_address" value="0x400"/>
+                <linker property="mtb_supported" value="false"/>
+            </linkerSettings>
+        </device>
+        <device family="KV4x" platform="Kinetis" id="MKV42F64xxx16" name="MKV42F16" full_name="MKV42F64xxx16" version="1.0.0">
+            <description>Kinetis KV4x-168 MHz, High Performance Motor / Power Conversion MCUs based on ARM Cortex-M4</description>
+            <metadataSet>
+                <metadata key="vendor" value="NXP"/>
+            </metadataSet>
+            <core fpu="true" type="cm4" id="core0_MKV42F64xxx16" name="core0"/>
+            <memory>
+                <memoryBlock addr="00000000" size="00010000" type="Flash" access="RO" id="PROGRAM_FLASH_MKV42F64xxx16" name="PROGRAM_FLASH"/>
+                <memoryBlock addr="20000000" size="00002000" type="RAM" access="RW" id="SRAM_UPPER_MKV42F64xxx16" name="SRAM_UPPER"/>
+                <memoryBlock addr="1FFFE000" size="00002000" type="RAM" access="RW" id="SRAM_LOWER_MKV42F64xxx16" name="SRAM_LOWER"/>
+            </memory>
+            <total_memory flash_size_kb="64" ram_size_kb="8"/>
+            <package id="MKV42F64VLF16" name="MKV42F64VLF16"/>
+            <package id="MKV42F64VLH16" name="MKV42F64VLH16"/>
+            <evaluation_boards>
+                <evaluation_board name="hvpkv46f150m"/>
+                <evaluation_board name="twrkv46f150m"/>
+            </evaluation_boards>
+            <debug_configurations>
+                <debug_configuration id_refs="com.crt.advproject.config.exe.debug com.crt.advproject.config.exe.release">
+                    <params>
+                        <params value="SWD*,JTAG" id="internal.wiretype.release.MKV42F64xxx16" name="internal.wiretype"/>
+                        <params value="true" id="internal.has_swo.release.MKV42F64xxx16" name="internal.has_swo"/>
+                        <params value="kinetisconnect.scp" id="internal.connect.script.debug.mcuxpresso.MKV42F64xxx16" name="internal.connect.script"/>
+                    </params>
+                    <drivers>
+                        <driver id_refs="PROGRAM_FLASH_MKV42F64xxx16">
+                            <driverBinary path="devices/MKV42F16" type="binary">
+<files mask="FTFA_4K.cfx"/>
+                            </driverBinary>
+                        </driver>
+                    </drivers>
+                </debug_configuration>
+            </debug_configurations>
+            <linkerSettings nature="c_nature">
+                <linker property="start_symbol" value="ResetISR"/>
+                <linker property="text_align" value="4"/>
+                <linker property="data_align" value="4"/>
+                <linker property="bss_align" value="4"/>
+                <linker property="flash_security_address" value="0x400"/>
+                <linker property="mtb_supported" value="false"/>
+            </linkerSettings>
+            <linkerSettings nature="cpp_nature">
+                <linker property="start_symbol" value="ResetISR"/>
+                <linker property="text_align" value="4"/>
+                <linker property="data_align" value="4"/>
+                <linker property="bss_align" value="4"/>
+                <linker property="flash_security_address" value="0x400"/>
+                <linker property="mtb_supported" value="false"/>
+            </linkerSettings>
+        </device>
+    </devices>
+    <components>
+        <component user_visible="true" type="debugger" devices="MKV46F256xxx16" package_base_path="./" project_base_path="MKV46F16" id="device.MKV46F16_debugger.MKV46F16" name="MKV46F16_debugger" full_name="Device MKV46F16_debugger" brief="Device MKV46F16_debugger" version="1.0.0">
+            <source relative_path="devices/MKV46F16" type="xml">
+                <files mask="MKV46F16.xml"/>
+            </source>
+        </component>
+        <component user_visible="true" type="debugger" devices="MKV42F64xxx16" package_base_path="./" project_base_path="MKV42F16" id="device.MKV42F16_debugger.MKV42F16" name="MKV42F16_debugger" full_name="Device MKV42F16_debugger" brief="Device MKV42F16_debugger" version="1.0.0">
+            <source relative_path="devices/MKV42F16" type="xml">
+                <files mask="MKV42F16.xml"/>
+            </source>
+        </component>
+    </components>
+</ns2:manifest>

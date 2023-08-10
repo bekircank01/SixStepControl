@@ -1,0 +1,169 @@
+/*-----ADC PARAMETERS----------------------------------------------------*/
+#define DEMO_CADC_BASEADDR ADC
+#define BEMF_U_CADC_CHANNEL  4U    //ADCA channel_4-> bemf u phase
+#define BEMF_V_CADC_CHANNEL  5U    //ADCA channel_5 -> bemf v phase
+#define BEMF_W_CADC_CHANNEL  12U    //ADCB channel_4 -> bemf w phase           (!!! adress: b1100)
+#define CURRENT_U_CADC_CHANNEL  9U //ADCB channel_1 -> current u phase         (!!! adress: b1001)
+#define CURRENT_V_CADC_CHANNEL  1U //ADCA channel_1 -> current v phase
+#define CURRENT_W_CADC_CHANNEL  0U //ADCA channel_0 -> current w phase
+#define IPM_TEMP_CADC_CHANNEL  7U  //ADCA channel_7g -> ipm temperature value
+#define DC_BUS_CADC_CHANNEL  11U    //ADCB channel_3 -> board DC voltage value (!!! adress: b1011)
+uint32_t BEMF_U_Value = 0U;
+uint32_t BEMF_V_Value = 0U;
+uint32_t BEMF_W_Value = 0U;
+uint32_t CURRENT_U_Value= 0U;
+uint32_t CURRENT_V_Value= 0U;
+uint32_t CURRENT_W_Value= 0U;
+
+
+
+
+static void CADC_Config(void)
+{
+    cadc_config_t cadcConfigStruct;
+    cadc_converter_config_t cadcConverterConfigStruct;
+    cadc_sample_config_t cadcSampleConfigStruct;
+
+    /* Configure the CADC */
+    CADC_GetDefaultConfig(&cadcConfigStruct);     //Gets an available pre-defined settings for module's configuration.
+    cadcConfigStruct.dualConverterScanMode  = kCADC_DualConverterWorkAsOnceParallel;   //default: sequential mode
+    cadcConfigStruct.powerUpDelay           = 0x2AU;   //Delay clock count to wait for the clock is stable.
+    cadcConfigStruct.enableSimultaneousMode = false; //default: false
+    CADC_Init(DEMO_CADC_BASEADDR, &cadcConfigStruct);   //Enable the clock for CADC, Set the global settings for CADC converter.
+
+    /* Trigger channel */
+    //A
+    CADC_EnableConverterDMA(DEMO_CADC_BASEADDR, kCADC_ConverterA, false);   //Enables or disables the DMA feature
+    CADC_EnableConverter(DEMO_CADC_BASEADDR, kCADC_ConverterA, true);   //Enables the converter's conversion.
+    CADC_EnableConverterSyncInput(DEMO_CADC_BASEADDR, kCADC_ConverterA, false);   //Enables the input of external sync signal.
+    CADC_DisableInterrupts(DEMO_CADC_BASEADDR, kCADC_ConverterAEndOfScanInterruptEnable);  //Disables the interrupts.
+    //B
+    CADC_EnableConverterDMA(DEMO_CADC_BASEADDR, kCADC_ConverterB, false);   //Enables or disables the DMA feature
+    CADC_EnableConverter(DEMO_CADC_BASEADDR, kCADC_ConverterB, true);   //Enables the converter's conversion.
+    CADC_EnableConverterSyncInput(DEMO_CADC_BASEADDR, kCADC_ConverterB, false);   //Enables the input of external sync signal.
+    CADC_DisableInterrupts(DEMO_CADC_BASEADDR, kCADC_ConverterBEndOfScanInterruptEnable);  //Disables the interrupts.
+
+
+    CADC_GetDefaultConverterConfig(&cadcConverterConfigStruct);   //Gets an available pre-defined settings for each converter's configuration.(default değere döndürür)
+    cadcConverterConfigStruct.clockDivisor = 0xAU;
+    cadcConverterConfigStruct.speedMode    = kCADC_SpeedMode3;
+    //A
+    CADC_SetConverterConfig(DEMO_CADC_BASEADDR, kCADC_ConverterA, &cadcConverterConfigStruct);    //Configures the converter.
+    CADC_EnableConverterPower(DEMO_CADC_BASEADDR, kCADC_ConverterA, true);   //Enables power for the converter.
+    //B
+    CADC_SetConverterConfig(DEMO_CADC_BASEADDR, kCADC_ConverterB, &cadcConverterConfigStruct);    //Configures the converter.
+    CADC_EnableConverterPower(DEMO_CADC_BASEADDR, kCADC_ConverterB, true);   //Enables power for the converter.
+
+
+    /* Configure slot in conversion sequence. */
+    /* Common setting. */
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 2U, false);  //Enables or disables the sample slot.(burada 0'ıncı sample slot)
+    cadcSampleConfigStruct.channelNumber          = BEMF_U_CADC_CHANNEL;
+    cadcSampleConfigStruct.enableDifferentialPair = 0U;
+    cadcSampleConfigStruct.zeroCrossingMode       = kCADC_ZeroCrossingDisabled;
+    cadcSampleConfigStruct.lowLimitValue          = 0U;
+    cadcSampleConfigStruct.highLimitValue         = 0xFFFFU;
+    cadcSampleConfigStruct.offsetValue            = 0U; //**
+    cadcSampleConfigStruct.enableWaitSync         = false;
+
+    //Enable slot 4 for BEMF_U_CADC_CHANNEL
+    CADC_SetSampleConfig(DEMO_CADC_BASEADDR, 2U, &cadcSampleConfigStruct);   //Configures the sample slot.
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 2U, true);                         //This function is to enable the sample slot. Only the enabled sample slot can join the conversion sequence.
+
+    //Enable slot 5 for BEMF_V_CADC_CHANNEL
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 3U, false);
+    cadcSampleConfigStruct.channelNumber = BEMF_V_CADC_CHANNEL;
+    CADC_SetSampleConfig(DEMO_CADC_BASEADDR, 3U, &cadcSampleConfigStruct);  //Index of sample slot:5
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 3U, true);
+
+    //Enable slot 12 for  BEMF_W_CADC_CHANNEL (!!! ADCB !!!)
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 8U, false);
+    cadcSampleConfigStruct.channelNumber =  BEMF_W_CADC_CHANNEL;
+    CADC_SetSampleConfig(DEMO_CADC_BASEADDR, 8U, &cadcSampleConfigStruct);  //Index of sample slot:12
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 8U, true);
+
+    //Enable slot 9 for  CURRENT_U_CADC_CHANNEL (!!! ADCB !!!)
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 9U, false);
+    cadcSampleConfigStruct.channelNumber =  CURRENT_U_CADC_CHANNEL;
+    cadcSampleConfigStruct.channelGain   = kCADC_ChannelGainx2;
+    CADC_SetSampleConfig(DEMO_CADC_BASEADDR, 9U, &cadcSampleConfigStruct);  //Index of sample slot:9
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 9U, true);
+    cadcSampleConfigStruct.channelGain   = kCADC_ChannelGainx1;
+
+    //Enable slot 1 for  CURRENT_V_CADC_CHANNEL
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 1U, false);
+    cadcSampleConfigStruct.channelNumber =  CURRENT_V_CADC_CHANNEL;
+    CADC_SetSampleConfig(DEMO_CADC_BASEADDR, 1U, &cadcSampleConfigStruct);  //Index of sample slot:1
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 1U, true);
+
+    //Enable slot 0 for  CURRENT_W_CADC_CHANNEL
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 0U, false);
+    cadcSampleConfigStruct.channelNumber =  CURRENT_W_CADC_CHANNEL;
+    CADC_SetSampleConfig(DEMO_CADC_BASEADDR, 0U, &cadcSampleConfigStruct);  //Index of sample slot:0
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 0U, true);
+
+    //Enable slot 7 for  IPM_TEMP_CADC_CHANNEL
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 11U, false);
+    cadcSampleConfigStruct.channelNumber =  IPM_TEMP_CADC_CHANNEL;
+    cadcSampleConfigStruct.channelGain   = kCADC_ChannelGainx4;
+    CADC_SetSampleConfig(DEMO_CADC_BASEADDR, 11U, &cadcSampleConfigStruct);  //Index of sample slot:7
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 11U, true);
+    cadcSampleConfigStruct.channelGain   = kCADC_ChannelGainx1;
+
+    //Enable slot 11 for  DC_BUS_CADC_CHANNEL (!!! ADCB !!!)
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 10U, false);
+    cadcSampleConfigStruct.channelNumber = DC_BUS_CADC_CHANNEL;
+    CADC_SetSampleConfig(DEMO_CADC_BASEADDR, 10U, &cadcSampleConfigStruct);  //Index of sample slot:11
+    CADC_EnableSample(DEMO_CADC_BASEADDR, 10U, true);
+
+
+}
+
+
+
+static void CADC_Value_Read(void){
+
+    CADC_ClearStatusFlags(DEMO_CADC_BASEADDR, kCADC_ConverterAEndOfScanFlag);
+    CADC_ClearStatusFlags(DEMO_CADC_BASEADDR, kCADC_ConverterBEndOfScanFlag);
+	CADC_DoSoftwareTriggerConverter(DEMO_CADC_BASEADDR, kCADC_ConverterA);  //Triggers the converter A by software trigger.
+	CADC_DoSoftwareTriggerConverter(DEMO_CADC_BASEADDR, kCADC_ConverterB);  //Triggers the converter B by software trigger.
+
+	while (kCADC_ConverterAEndOfScanFlag != (kCADC_ConverterAEndOfScanFlag & CADC_GetStatusFlags(DEMO_CADC_BASEADDR)))
+	{}
+	while (kCADC_ConverterBEndOfScanFlag != (kCADC_ConverterBEndOfScanFlag & CADC_GetStatusFlags(DEMO_CADC_BASEADDR)))
+	{}
+
+	// Get Sample Result value
+	CadcConversionValue = CADC_GetSampleResultValue(DEMO_CADC_BASEADDR, 9U); // The lower three bits of ADC_RSLT register are always going to be zero
+	CURRENT_U_Value  = CadcConversionValue >> 3;
+
+	CadcConversionValue = CADC_GetSampleResultValue(DEMO_CADC_BASEADDR, 1U);
+    CURRENT_V_Value  = CadcConversionValue >> 3;
+
+	CadcConversionValue = CADC_GetSampleResultValue(DEMO_CADC_BASEADDR, 0U);
+    CURRENT_W_Value  = CadcConversionValue >> 3;
+
+	CadcConversionValue = CADC_GetSampleResultValue(DEMO_CADC_BASEADDR, 2U); //normalde 4
+    BEMF_U_Value  = CadcConversionValue >> 3;
+
+	CadcConversionValue = CADC_GetSampleResultValue(DEMO_CADC_BASEADDR, 3U); //normalde 5
+    BEMF_V_Value  = CadcConversionValue >> 3;
+
+	CadcConversionValue = CADC_GetSampleResultValue(DEMO_CADC_BASEADDR, 8U);
+    BEMF_W_Value  = CadcConversionValue >> 3;
+
+	CadcConversionValue = CADC_GetSampleResultValue(DEMO_CADC_BASEADDR, 10U);
+	DC_BUS_Value = CadcConversionValue >> 3;
+
+	CadcConversionValue = CADC_GetSampleResultValue(DEMO_CADC_BASEADDR, 11U);
+	IPM_TEMP_Value = CadcConversionValue >> 3;
+
+
+
+	//Convert CADC value to a voltage based on 3.3V VREFH on board
+	//voltRead = (float)(CadcConversionValue * (VREF_BRD / SE_12BIT));
+
+	CADC_ClearStatusFlags(DEMO_CADC_BASEADDR, kCADC_ConverterAEndOfScanFlag); // Clear status Flags
+	CADC_ClearStatusFlags(DEMO_CADC_BASEADDR, kCADC_ConverterBEndOfScanFlag); // Clear status Flags
+
+}

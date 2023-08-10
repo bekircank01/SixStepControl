@@ -1,0 +1,7 @@
+C:\Users\NAIL\Desktop\PMSM_motor_control\PMSM_SixStep_v03\drivers/fsl_clock.h:1087:20:CLOCK_SetXtal0Freq	16	static
+C:\Users\NAIL\Desktop\PMSM_motor_control\PMSM_SixStep_v03\drivers/fsl_smc.h:256:20:SMC_SetPowerModeProtection	16	static
+C:\Users\NAIL\Desktop\PMSM_motor_control\PMSM_SixStep_v03\drivers/fsl_smc.h:275:33:SMC_GetPowerModeState	16	static
+../board/clock_config.c:69:13:CLOCK_CONFIG_SetSimSafeDivs	4	static
+../board/clock_config.c:81:13:CLOCK_CONFIG_SetFllExtRefDiv	16	static
+../board/clock_config.c:89:6:BOARD_InitBootClocks	4	static
+../board/clock_config.c:164:6:BOARD_BootClockRUN	8	static

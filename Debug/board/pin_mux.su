@@ -1,0 +1,5 @@
+C:\Users\NAIL\Desktop\PMSM_motor_control\PMSM_SixStep_v03\drivers/fsl_clock.h:605:20:CLOCK_EnableClock	24	static
+C:\Users\NAIL\Desktop\PMSM_motor_control\PMSM_SixStep_v03\drivers/fsl_port.h:346:20:PORT_SetPinMux	24	static
+C:\Users\NAIL\Desktop\PMSM_motor_control\PMSM_SixStep_v03\drivers/fsl_port.h:416:20:PORT_SetPinInterruptConfig	24	static
+../board/pin_mux.c:46:6:BOARD_InitBootPins	8	static
+../board/pin_mux.c:87:6:BOARD_InitPins	24	static

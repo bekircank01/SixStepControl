@@ -1,0 +1,105 @@
+
+void FTM_INPUT_CAPTURE_HANDLER(void)
+{
+	/******************(Hall)_A**************/
+    if ((FTM_GetStatusFlags(BOARD_FTM_BASEADDR) & kFTM_Chnl2Flag) == kFTM_Chnl2Flag)
+    {
+        /* Clear interrupt flag.*/
+        FTM_ClearStatusFlags(BOARD_FTM_BASEADDR, kFTM_Chnl2Flag);
+
+        if( HallAFirstCapture_fl == 0 ){
+
+        	HallAFirstCapture_fl = 1;
+        	//HallAFirstVal= BOARD_FTM_BASEADDR->CONTROLS[kFTM_Chnl_2].CnV;
+        	//if(!MotorDir_fl){
+        	//	MotorDir=1; //İlk yükselen kenar A fazında ise
+        	//	MotorDir_fl=1; //flag 1'e çekildi
+        	//}
+        }
+        else{
+        	HallAFirstCapture_fl=0;
+        	/*
+        	HallASecondVal = BOARD_FTM_BASEADDR->CONTROLS[kFTM_Chnl_2].CnV;
+
+        	if(HallASecondVal > HallAFirstVal){
+        		HallADiff = HallASecondVal - HallAFirstVal;
+        	}
+        	else{
+        		HallADiff = (0xFFFF - HallAFirstVal)+(HallASecondVal);
+        	}
+            // Hall'ın 1 periyodunda geçen süre için difference 2 ile çarpıldı!!!
+        	HallAFreq = (21000000) / (HallADiff * 2); //clock freq: 21.000.000 Hz       //elektriksel hız
+        	HallA_rpm = HallAFreq*60;                 //frequency to RPM transform     //elektriksel hız
+            */
+        }
+    }
+
+	/******************(Hall)_B**************/
+    else if ((FTM_GetStatusFlags(BOARD_FTM_BASEADDR) & kFTM_Chnl3Flag) == kFTM_Chnl3Flag)
+    {
+        // Clear interrupt flag.//
+        FTM_ClearStatusFlags(BOARD_FTM_BASEADDR, kFTM_Chnl3Flag);
+
+        if(HallBFirstCapture_fl == 0){
+        	HallBFirstCapture_fl = 1;
+        	//if(!MotorDir_fl){
+        	//	MotorDir=0; //İlk yükselen kenar B fazında ise
+        	//	MotorDir_fl=1; //flag 1'e çekildi
+        	//}
+        }
+        else{
+        	HallBFirstCapture_fl=0;
+        }
+    }
+
+	/******************(Hall_C)**************/
+    else if ((FTM_GetStatusFlags(BOARD_FTM_BASEADDR) & kFTM_Chnl0Flag) == kFTM_Chnl0Flag)
+    {
+        // Clear interrupt flag.//
+        FTM_ClearStatusFlags(BOARD_FTM_BASEADDR, kFTM_Chnl0Flag);
+
+        if(HallCFirstCapture_fl == 0){
+        	HallCFirstCapture_fl = 1;
+        }
+        else{
+        	HallCFirstCapture_fl=0;
+        }
+    }
+
+    else{
+     	//!!!!!
+     }
+
+
+    //SECTOR CALCULATION
+	if(     HallAFirstCapture_fl==1 && HallBFirstCapture_fl==0 && HallCFirstCapture_fl==0 ){// &&H_Sec_old==1
+		Hall_Sector=1;
+		H_Sec_old=1;
+	}
+	else if(HallAFirstCapture_fl==1 && HallBFirstCapture_fl==1 && HallCFirstCapture_fl==0 ){// &&H_Sec_old==2
+		Hall_Sector=2;
+		H_Sec_old=2;
+	}
+	else if(HallAFirstCapture_fl==0 && HallBFirstCapture_fl==1 && HallCFirstCapture_fl==0 ){// &&H_Sec_old==3
+		Hall_Sector=3;
+		H_Sec_old=3;
+	}
+	else if(HallAFirstCapture_fl==0 && HallBFirstCapture_fl==1 && HallCFirstCapture_fl==1 ){// &&H_Sec_old==4
+		Hall_Sector=4;
+		H_Sec_old=4;
+	}
+	else if(HallAFirstCapture_fl==0 && HallBFirstCapture_fl==0 && HallCFirstCapture_fl==1 ){// &&H_Sec_old==5
+		Hall_Sector=5;
+		H_Sec_old=5;
+	}
+	else if(HallAFirstCapture_fl==1 && HallBFirstCapture_fl==0 && HallCFirstCapture_fl==1 ){// &&H_Sec_old==6
+		Hall_Sector=6;
+		H_Sec_old=6;
+	}
+	else{
+		//hata bayrağı kaldır
+		SectorError_fl++;
+		Hall_Sector=7;
+	}
+     __DSB();
+ }

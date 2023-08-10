@@ -1,0 +1,64 @@
+
+
+/*-----PID CONTROLLER PARAMETERS------------------------------------------------*/
+
+struct pidStruct {
+    float MeasuredSpeed_rpm;//???
+    float DesiredSpeed_rpm;
+	float error;
+	float lastError;
+	float derivative;
+	float integral;
+	float integralPrev;
+	float output;
+	struct {
+		float kp, ki, kd;
+	} values;
+}PID_struct;
+
+void PID_Variables_Init(void) {
+	PID_struct.MeasuredSpeed_rpm=0;
+	PID_struct.DesiredSpeed_rpm=100; //desired speed değeri
+	PID_struct.error = 0;
+	PID_struct.lastError = 0;
+	PID_struct.derivative = 0;
+	PID_struct.integral = 0;
+	PID_struct.integralPrev = 0;
+	PID_struct.output = 0; //0-100 arasında PWM duty cycle değeri alır
+	PID_struct.values.kp = 0.011389;
+	PID_struct.values.kd = 0.000023;
+	PID_struct.values.ki = 0;
+}
+
+#define pid_time 10            //???
+#define pid_sampling_time 0.01 //???
+#define voltage_max 35         //???
+#define duty_cycle_max 100     //???
+float pid_calculator_count;    //???
+
+void PID_Output_Calculation()
+{
+	if(pid_calculator_count > pid_time) {
+
+
+		//PID_struct->MeasuredSpeed_rpm = Hall measured speed; (halldan okunan hız değeri(rpm))
+
+		PID_struct.error = PID_struct.DesiredSpeed_rpm - PID_struct.MeasuredSpeed_rpm;
+		PID_struct.integral = PID_struct.integralPrev + (pid_time * (PID_struct.error + PID_struct.lastError) / 2);
+		PID_struct.derivative = (PID_struct.error - PID_struct.lastError) / pid_time;
+		PID_struct.output = (PID_struct.error * PID_struct.values.kp) + (PID_struct.derivative * PID_struct.values.kd) + (PID_struct.integral * PID_struct.values.ki);
+
+		if(PID_struct.output > duty_cycle_max) {
+			PID_struct.output = duty_cycle_max;
+			PID_struct.integral = PID_struct.integralPrev;
+		} else if(PID_struct.output < -duty_cycle_max) {
+			PID_struct.output = -duty_cycle_max;
+			PID_struct.integral = PID_struct.integralPrev;
+		}
+
+		PID_struct.lastError = PID_struct.error;
+		PID_struct.integralPrev = PID_struct.integral;
+		pid_calculator_count = 0;
+
+	}
+}
